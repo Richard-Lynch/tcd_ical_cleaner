@@ -13,6 +13,8 @@ NAME_MAP = {}
 class Event():
     def __init__(self, event):
         self.ics = event
+        self._name_sep = '-'
+        self._loc_sep = ':'
 
     @property
     def ics(self):
@@ -21,99 +23,54 @@ class Event():
     @ics.setter
     def ics(self, value):
         self._ics = value
-        self.name = EventName(self._ics.name)
-        self.description = EventDescription(self._ics.description)
-        self.location = EventLocation(self.description.location)
-        self._ics.name = self.name.formatted
-        self._ics.location = self.location.formatted
-        self._ics.description = self.description.formatted
+        self.parse_name()
+        self.parse_description()
+        self.parse_location()
+        self.reformat_event()
 
+    def parse_name(self):
+        split_name = [item.strip() for item in self._ics.name.split('-')]
+        self.code = split_name[0]
+        self.title = split_name[1]
 
-class EventName:
-    def __init__(self, name, sep='-'):
-        self.sep = sep
-        self.name = name
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        self._name = value
-
-        split_title = [item.strip() for item in self.name.split(self.sep)]
-        self.code = split_title[0]
-        self.title = split_title[1]
-
-        try:
-            self.formatted = f'{NAME_MAP[self.title]}'
-        except KeyError:
-            self.formatted = f'{self.title}'
-
-
-class EventDescription:
-    def __init__(self, description, sep=':'):
-        self.sep = sep
-        self.description = description
-
-    @property
-    def description(self):
-        return self._description
-
-    @description.setter
-    def description(self, value):
-        self._description = value
-
-        parsed = [line for line in self.description.split('\n') if line]
-        self.detail = parsed[0]
-
+    def parse_description(self):
         parsed = [
-            self._parse_line(line) for line in parsed[1:]
-            if self._is_valid_line(line)
+            line.split(':')[1].strip()
+            for line in self._ics.description.split('\n')
+            if line and ':' in line
         ]
         self.event_type = parsed[0]
         self.lecturer = parsed[1]
-        self.location = parsed[2]
+        self.full_location = parsed[2]
 
-        self.formatted = "\n".join([
+    def parse_location(self):
+        self.room = self.full_location.split("-")[0].strip()
+        self.building = self.full_location.split("[")[-1].split("]")[0]
+        if 'ICT' not in self.building:
+            self.building = self.building.split()[0]
+
+    def reformat_event(self):
+        try:
+            self._ics.name = f'{NAME_MAP[self.title]}'
+        except KeyError:
+            self._ics.name = f'{self.title}'
+        self._ics.location = self.location
+        self._ics.description = self.description
+
+    @property
+    def detail(self):
+        return f'{self.title} - {self.code}'
+
+    @property
+    def description(self):
+        return "\n".join([
             f'{self.detail}', f'Event Type: {self.event_type}',
-            f'Lecturer: {self.lecturer}', f'Location: {self.location}'
+            f'Lecturer: {self.lecturer}', f'Location: {self.full_location}'
         ])
-
-    def _parse_line(self, line):
-        return line.strip().split(self.sep)[1]
-
-    def _is_valid_line(self, line):
-        return line and self.sep in line
-
-
-class EventLocation:
-    def __init__(self, location):
-        self.location = location
 
     @property
     def location(self):
-        return self._location
-
-    @location.setter
-    def location(self, value):
-        self._location = value
-
-        self.room = self.location.split("-")[0].strip()
-
-        if 'ICT' in self.location:
-            self.building = self._ict_building()
-        else:
-            self.building = self._normal_building()
-
-        self.formatted = f'{self.building}: {self.room}'
-
-    def _normal_building(self):
-        return self._ict_building().split()[0]
-
-    def _ict_building(self):
-        return self.location.split("[")[-1].split("]")[0]
+        return f'{self.building}: {self.room}'
 
 
 if __name__ == '__main__':
