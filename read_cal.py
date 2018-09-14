@@ -1,20 +1,13 @@
 #!/usr/local/bin/python3
 
 import json
-from functools import partial
-from pprint import pprint as pprint_default
 
 from ics import Calendar
-
-pprint = partial(pprint_default, width=160)
-NAME_MAP = {}
 
 
 class Event():
     def __init__(self, event):
         self.ics = event
-        self._name_sep = '-'
-        self._loc_sep = ':'
 
     @property
     def ics(self):
@@ -83,12 +76,5 @@ if __name__ == '__main__':
     fixed_cal = Calendar()
     for event in Calendar(open(input_filename).read()).events:
         fixed_cal.events.add(Event(event).ics)
-
-    counter = 0
-    for event in fixed_cal.events:
-        print(event)
-        counter += 1
-        if counter > 10:
-            break
 
     open(output_filename, "w").writelines(fixed_cal)
