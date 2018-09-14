@@ -1,0 +1,13 @@
+{
+    "input_filename": "dirty.ics",
+    "output_filename": "clean.ics",
+    "name_map": {
+        "SCALABLE COMPUTING": "Scalable Computing",
+        "INTERNET OF THINGS": "IoT",
+        "KNOWLEDGE AND DATA ENGINEERING": "Knowledge & Data",
+        "ADVANCED COMPUTER ARCHITECTURE": "Computer Arch",
+        "FUZZY LOGIC & CONTROL SYSTEMS": "Fuzzy Logic",
+        "FORMAL VERIFICATION": "Formal Verification",
+        "5E2 RESEARCH METHODS": "Research Methods"
+    }
+}
